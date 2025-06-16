@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>四川旅游问答</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding:0; background-color: #f0f2f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 90%; max-width: 800px; margin: 20px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        h1 { color: #1877f2; text-align: center; margin-bottom: 25px; font-size: 28px; }
+        textarea { width: calc(100% - 22px); padding: 12px; margin-bottom: 15px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 16px; resize: vertical; min-height: 60px; }
+        textarea:focus { border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2); outline: none;}
+        .button-container { text-align: center; margin-bottom: 20px; }
+        input[type="submit"] { background-color: #1877f2; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 17px; font-weight: bold; transition: background-color 0.3s ease; }
+        input[type="submit"]:hover { background-color: #166fe5; }
+        .result-card { margin-top: 25px; padding: 20px; background-color: #f7f7f7; border: 1px solid #e0e0e0; border-radius: 8px; }
+        .result-card strong { font-size: 18px; color: #333; }
+        .result-text { margin-top: 10px; white-space: pre-wrap; font-size: 16px; line-height: 1.6; color: #555; }
+        .question-echo { margin-top: 20px; padding: 15px; background-color: #e7f3ff; border: 1px solid #cce0ff; border-radius: 8px; font-size: 16px; }
+        .question-echo strong { color: #00529B; }
+        .error-message { color: red; text-align: center; margin-top: 10px; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(24, 119, 242, 0.3); border-radius: 50%; border-top-color: #1877f2; animation: spin 1s ease-in-out infinite; margin-left: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>四川旅游智能问答</h1>
+        <form method="post">
+            <textarea name="question" rows="3" placeholder="请输入您的问题，例如：成都大熊猫繁育研究基地的简介">{{ request.form['question'] if request.form else '' }}</textarea><br>
+            <div class="button-container">
+                <input type="submit" value="提问">
+            </div>
+        </form>
+
+        {% if question %}
+            <div class="question-echo">
+                <strong>您的问题:</strong><br>{{ question }}
+            </div>
+        {% endif %}
+
+        {% if answer %}
+            <div class="result-card" id="answer-container">
+                <strong>答案:</strong>
+                <div class="result-text" id="answer-text">{{ answer }}</div>
+                {% if query_id %}
+                <div id="loading-indicator" style="text-align: center; margin-top: 15px;">
+                    <span>正在获取更多信息</span>
+                    <div class="loading"></div>
+                </div>
+                {% endif %}
+            </div>
+        {% elif error_message %}
+             <div class="result-card error-message">
+                {{ error_message }}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if query_id %}
+    <script>
+        // 异步获取API结果的JavaScript代码
+        const queryId = "{{ query_id }}";
+        const answerText = document.getElementById('answer-text');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        function checkApiResult() {
+            fetch(`/get_api_result/${queryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "completed") {
+                        // 显示API返回的结果
+                        answerText.innerHTML = answerText.innerHTML + "\n\n" + data.result;
+                        // 隐藏加载指示器
+                        loadingIndicator.style.display = 'none';
+                    } else if (data.status === "error") {
+                        // 显示错误信息
+                        answerText.innerHTML = answerText.innerHTML + "\n\n获取信息失败: " + data.result;
+                        loadingIndicator.style.display = 'none';
+                    } else {
+                        // 继续查询
+                        setTimeout(checkApiResult, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('查询API结果时出错:', error);
+                    setTimeout(checkApiResult, 2000); // 出错后延长等待时间
+                });
+        }
+        
+        // 开始查询过程
+        setTimeout(checkApiResult, 1000);
+    </script>
+    {% endif %}
+</body>
+</html>
