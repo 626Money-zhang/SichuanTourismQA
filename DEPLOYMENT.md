@@ -31,7 +31,7 @@ python --version
 
 ```bash
 # 克隆代码仓库
-git clone https://github.com/your-username/SichuanTourismQA.git
+git clone https://github.com/Blue-OldMan/SichuanTourismQA.git
 
 # 进入项目目录
 cd SichuanTourismQA

@@ -13,7 +13,7 @@
 ### 环境准备
 ```bash
 # 克隆代码仓库
-git clone https://github.com/626Money-zhang/SichuanTourismQA.git
+git clone https://github.com/Blue-OldMan/SichuanTourismQA.git
 cd SichuanTourismQA
 
 # 创建并激活虚拟环境
